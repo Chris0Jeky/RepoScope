@@ -59,6 +59,14 @@
                 </section>
             </div>
 
+            <!-- Code Churn Over Time Chart -->
+            <section class="card chart-section">
+                <h2>Code Churn Over Time</h2>
+                <div class="chart-wrapper">
+                    <canvas id="code-churn-over-time"></canvas>
+                </div>
+            </section>
+
             <!-- Tables Section -->
             <div class="tables-row">
                 <section class="card">
@@ -94,6 +102,26 @@
                     </div>
                 </section>
             </div>
+
+            <!-- File Hotspots Table -->
+            <section class="card">
+                <h2>File Hotspots</h2>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">Files with the most changes and code churn</p>
+                <div class="table-wrapper">
+                    <table id="file-hotspots-table">
+                        <thead>
+                            <tr>
+                                <th>File Path</th>
+                                <th>Commits</th>
+                                <th>Lines Added</th>
+                                <th>Lines Deleted</th>
+                                <th>Total Churn</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
         </div>
     </main>
 

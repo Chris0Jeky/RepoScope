@@ -54,4 +54,14 @@ public sealed class RepoMetrics
     /// Commits grouped by directory.
     /// </summary>
     public IReadOnlyList<CommitsByDirectory> CommitsByDirectory { get; init; } = Array.Empty<CommitsByDirectory>();
+
+    /// <summary>
+    /// File-level hotspots showing which files have the most activity.
+    /// </summary>
+    public IReadOnlyList<FileHotspot> FileHotspots { get; init; } = Array.Empty<FileHotspot>();
+
+    /// <summary>
+    /// Code churn metrics over time (lines added/deleted by day).
+    /// </summary>
+    public IReadOnlyList<CodeChurnByDay> CodeChurnOverTime { get; init; } = Array.Empty<CodeChurnByDay>();
 }
