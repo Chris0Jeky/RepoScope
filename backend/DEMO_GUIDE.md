@@ -18,7 +18,11 @@ dotnet test
 #### a) Quick Summary
 Show a human-readable summary of any repository:
 ```bash
-dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary .
+# When in the backend directory, use .. to analyze the parent RepoScope repo
+dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary ..
+
+# Or specify the full path to any Git repository
+dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary "C:\path\to\any\git\repo"
 ```
 
 **What it shows:**
@@ -30,7 +34,7 @@ dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary .
 #### b) JSON Analysis
 Get detailed metrics in JSON format:
 ```bash
-dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- analyze . --out analysis.json
+dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- analyze .. --out analysis.json
 ```
 
 **Output includes:**
