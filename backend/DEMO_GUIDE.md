@@ -47,7 +47,7 @@ dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- analyze .. --out 
 #### c) Generate HTML Report
 Create a beautiful, interactive HTML report:
 ```bash
-dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- report . --out demo-output
+dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- report .. --out demo-output
 ```
 
 Then open `demo-output/index.html` in your browser!
@@ -76,17 +76,17 @@ The HTML report includes:
 
 #### Filter by Branch
 ```bash
-dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary . --branch main
+dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary .. --branch main
 ```
 
 #### Filter by Date Range
 ```bash
-dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary . --since 2025-01-01
+dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary .. --since 2025-01-01
 ```
 
 #### Limit Number of Commits
 ```bash
-dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary . --max-commits 100
+dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary .. --max-commits 100
 ```
 
 ## Demo Script (2-3 minutes)
