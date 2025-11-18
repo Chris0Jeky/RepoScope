@@ -169,6 +169,33 @@ public sealed class RepoAnalyzer : IRepoAnalyzer
             .OrderByDescending(d => d.CommitCount)
             .ToList();
 
+        // File-level hotspots
+        var fileHotspots = commits
+            .SelectMany(c => c.FileChanges.Select(fc => new { Commit = c, FileChange = fc }))
+            .GroupBy(x => x.FileChange.Path)
+            .Select(g => new FileHotspot
+            {
+                FilePath = g.Key,
+                CommitCount = g.Select(x => x.Commit.Id).Distinct().Count(),
+                LinesAdded = g.Sum(x => x.FileChange.LinesAdded),
+                LinesDeleted = g.Sum(x => x.FileChange.LinesDeleted)
+            })
+            .OrderByDescending(f => f.CommitCount)
+            .ToList();
+
+        // Code churn over time
+        var codeChurnByDay = commits
+            .GroupBy(c => DateOnly.FromDateTime(c.AuthorDate.Date))
+            .Select(g => new CodeChurnByDay
+            {
+                Day = g.Key,
+                CommitCount = g.Count(),
+                LinesAdded = g.SelectMany(c => c.FileChanges).Sum(fc => fc.LinesAdded),
+                LinesDeleted = g.SelectMany(c => c.FileChanges).Sum(fc => fc.LinesDeleted)
+            })
+            .OrderBy(c => c.Day)
+            .ToList();
+
         return new RepoMetrics
         {
             RepoPath = repoPath,
@@ -180,7 +207,9 @@ public sealed class RepoAnalyzer : IRepoAnalyzer
             UniqueAuthors = commitsByAuthor.Count,
             CommitsOverTime = commitsByDay,
             CommitsByAuthor = commitsByAuthor,
-            CommitsByDirectory = commitsByDirectory
+            CommitsByDirectory = commitsByDirectory,
+            FileHotspots = fileHotspots,
+            CodeChurnOverTime = codeChurnByDay
         };
     }
 

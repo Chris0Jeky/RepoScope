@@ -198,6 +198,18 @@ Modern Vue 3 + TypeScript SPA featuring:
 - Top-level directory activity
 - Hotspot identification
 
+### File-Level Hotspots
+- Files with the most commits
+- Lines added/deleted per file
+- Total code churn per file
+- Identify high-volatility files
+
+### Code Churn Over Time
+- Lines added/deleted by day
+- Net change tracking
+- Visualize development activity patterns
+- Identify periods of high activity
+
 ## Development
 
 ### Backend Development
@@ -265,13 +277,14 @@ dotnet test
 - [x] Static HTML reports with charts
 - [x] Vue.js dashboard
 - [x] Basic unit tests
+- [x] Improved HTML report template integration
+- [x] File-level hotspot analysis
+- [x] Code churn metrics (lines added/removed over time)
 
 ### Near-Term
-- [ ] Improved HTML report template integration
-- [ ] File-level hotspot analysis
-- [ ] Code churn metrics (lines added/removed over time)
 - [ ] Calendar heatmap visualization
 - [ ] Configurable analysis options
+- [ ] Performance optimizations for large repositories
 
 ### Future
 - [ ] ASP.NET Core API for dashboard

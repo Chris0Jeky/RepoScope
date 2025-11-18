@@ -93,15 +93,86 @@ public static class ReportCommand
 
     private static async Task GenerateHtmlReport(string outputPath)
     {
-        // For now, embed a simple HTML template
-        // In production, this would copy from templates/report-template/
-        var html = GetEmbeddedHtmlTemplate();
-        await File.WriteAllTextAsync(outputPath, html);
+        // Find the template directory relative to the solution
+        var templateSourcePath = FindTemplatePath();
+
+        if (templateSourcePath != null && Directory.Exists(templateSourcePath))
+        {
+            // Copy template files
+            await CopyTemplateFiles(templateSourcePath, Path.GetDirectoryName(outputPath)!);
+        }
+        else
+        {
+            // Fallback to embedded template if template directory not found
+            Console.WriteLine("Warning: Template directory not found, using embedded template");
+            var html = GetEmbeddedHtmlTemplate();
+            await File.WriteAllTextAsync(outputPath, html);
+        }
+    }
+
+    private static string? FindTemplatePath()
+    {
+        // Try to find templates/report-template from current directory upwards
+        var currentDir = Directory.GetCurrentDirectory();
+        var maxLevelsUp = 5;
+
+        for (int i = 0; i < maxLevelsUp; i++)
+        {
+            var templatePath = Path.Combine(currentDir, "templates", "report-template");
+            if (Directory.Exists(templatePath))
+            {
+                return templatePath;
+            }
+
+            var parentDir = Directory.GetParent(currentDir);
+            if (parentDir == null) break;
+            currentDir = parentDir.FullName;
+        }
+
+        return null;
+    }
+
+    private static async Task CopyTemplateFiles(string sourceDir, string destDir)
+    {
+        // Copy index.html
+        var indexSource = Path.Combine(sourceDir, "index.html");
+        var indexDest = Path.Combine(destDir, "index.html");
+        File.Copy(indexSource, indexDest, overwrite: true);
+
+        // Copy assets directory
+        var assetsSourceDir = Path.Combine(sourceDir, "assets");
+        var assetsDestDir = Path.Combine(destDir, "assets");
+
+        if (Directory.Exists(assetsSourceDir))
+        {
+            await CopyDirectory(assetsSourceDir, assetsDestDir);
+        }
+    }
+
+    private static async Task CopyDirectory(string sourceDir, string destDir)
+    {
+        Directory.CreateDirectory(destDir);
+
+        // Copy all files
+        foreach (var file in Directory.GetFiles(sourceDir))
+        {
+            var destFile = Path.Combine(destDir, Path.GetFileName(file));
+            File.Copy(file, destFile, overwrite: true);
+        }
+
+        // Copy all subdirectories
+        foreach (var subDir in Directory.GetDirectories(sourceDir))
+        {
+            var destSubDir = Path.Combine(destDir, Path.GetFileName(subDir));
+            await CopyDirectory(subDir, destSubDir);
+        }
+
+        await Task.CompletedTask;
     }
 
     private static string GetEmbeddedHtmlTemplate()
     {
-        // Simple embedded template - will be replaced by external template later
+        // Fallback embedded template for cases where template files can't be found
         return @"<!DOCTYPE html>
 <html lang=""en"">
 <head>

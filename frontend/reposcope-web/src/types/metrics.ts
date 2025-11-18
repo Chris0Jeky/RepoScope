@@ -9,6 +9,8 @@ export interface RepoMetrics {
   commitsOverTime: CommitsByDay[];
   commitsByAuthor: CommitsByAuthor[];
   commitsByDirectory: CommitsByDirectory[];
+  fileHotspots: FileHotspot[];
+  codeChurnOverTime: CodeChurnByDay[];
 }
 
 export interface CommitsByDay {
@@ -25,4 +27,22 @@ export interface CommitsByAuthor {
 export interface CommitsByDirectory {
   directoryPath: string;
   commitCount: number;
+}
+
+export interface FileHotspot {
+  filePath: string;
+  commitCount: number;
+  linesAdded: number;
+  linesDeleted: number;
+  totalChurn: number;
+  netChange: number;
+}
+
+export interface CodeChurnByDay {
+  day: string;
+  commitCount: number;
+  linesAdded: number;
+  linesDeleted: number;
+  totalChurn: number;
+  netChange: number;
 }

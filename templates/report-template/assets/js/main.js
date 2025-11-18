@@ -36,8 +36,10 @@ function renderReport(metrics) {
     renderCommitsOverTime(metrics.commitsOverTime);
     renderCommitsByAuthor(metrics.commitsByAuthor);
     renderCommitsByDirectory(metrics.commitsByDirectory);
+    renderCodeChurnOverTime(metrics.codeChurnOverTime || []);
     renderAuthorsTable(metrics.commitsByAuthor, metrics.totalCommits);
     renderDirectoriesTable(metrics.commitsByDirectory, metrics.totalCommits);
+    renderFileHotspotsTable(metrics.fileHotspots || []);
 }
 
 function renderRepoInfo(metrics) {
@@ -232,6 +234,98 @@ function renderDirectoriesTable(data, totalCommits) {
                 <td>${escapeHtml(dir.directoryPath)}</td>
                 <td class="number">${dir.commitCount}</td>
                 <td class="number percentage">${percentage}%</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderCodeChurnOverTime(data) {
+    if (!data || data.length === 0) return;
+
+    const ctx = document.getElementById('code-churn-over-time');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.day),
+            datasets: [
+                {
+                    label: 'Lines Added',
+                    data: data.map(d => d.linesAdded),
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Lines Deleted',
+                    data: data.map(d => -d.linesDeleted),
+                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                    borderColor: '#ef4444',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            // Show absolute value for deleted lines
+                            const value = Math.abs(context.parsed.y);
+                            label += value.toLocaleString() + ' lines';
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return Math.abs(value).toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderFileHotspotsTable(data) {
+    if (!data || data.length === 0) return;
+
+    const tbody = document.querySelector('#file-hotspots-table tbody');
+
+    // Show top 50 files
+    const top50 = data.slice(0, 50);
+
+    tbody.innerHTML = top50.map(file => {
+        return `
+            <tr>
+                <td>${escapeHtml(file.filePath)}</td>
+                <td class="number">${file.commitCount}</td>
+                <td class="number" style="color: #10b981;">${file.linesAdded.toLocaleString()}</td>
+                <td class="number" style="color: #ef4444;">${file.linesDeleted.toLocaleString()}</td>
+                <td class="number" style="font-weight: 600;">${file.totalChurn.toLocaleString()}</td>
             </tr>
         `;
     }).join('');
