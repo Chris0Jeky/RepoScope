@@ -343,7 +343,9 @@ Contributions are welcome! This is a personal project but feedback and improveme
 
 ## License
 
-MIT License - See LICENSE file for details
+The owner-authored application is licensed under GNU GPL version 3 only
+(`GPL-3.0-only`). See `LICENSE` and `RELICENSING.md`. Earlier revisions offered
+under MIT remain available under that historical grant.
 
 ## Acknowledgments
 
