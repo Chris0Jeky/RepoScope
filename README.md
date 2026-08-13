@@ -20,19 +20,29 @@ Analyze any Git repository on your machine and get rich insights through interac
 ### Prerequisites
 
 - [.NET 8 SDK](https://dotnet.net/download/dotnet/8.0)
-- [Node.js 18+](https://nodejs.org/) (for frontend development)
+- [Node.js 24 LTS](https://nodejs.org/) (for frontend development)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/Chris0Jeky/RepoScope.git
 cd RepoScope
 
 # Build the CLI
 cd backend
 dotnet build
 ```
+
+### First Successful Analysis
+
+From the `backend` directory, analyze this checkout with a bounded commit history:
+
+```bash
+dotnet run --project src/RepoScope.Cli/RepoScope.Cli.csproj -- summary .. --max-commits 25
+```
+
+The CLI prints a readable summary with the total commits, unique authors, date range, and top contributors.
 
 ### Usage
 
