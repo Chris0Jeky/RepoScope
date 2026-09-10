@@ -1,0 +1,15 @@
+{
+  "schema_version":1,"reviewed_on":"2026-09-10","repository":"Chris0Jeky/RepoScope","stable_id":"reposcope","runtime_class":"local",
+  "public_origin":null,"origin_evidence":"not-configured",
+  "target":"Local analyser; optional reviewed static reports",
+  "source_paths":["README.md"],
+  "persistent_state":["Local Git repositories and generated reports"],
+  "invariants":["Never upload repositories to enable a static showcase","No public analysis API is implied","Preserve CLI/package identifiers across display-name changes"],
+  "gates":["Name clearance before independent branding","Synthetic/redacted report review","Separate publication authorization"],
+  "tasks":[
+    {"id":"RS1","goal":"Define a static report publication allowlist","acceptance":"Only reviewed synthetic/redacted report assets can be selected"},
+    {"id":"RS2","goal":"Preserve the local analyser model","acceptance":"A landing page links local execution; it does not pretend the .NET API runs on static hosting"},
+    {"id":"RS3","goal":"Separate branding from technical compatibility","acceptance":"Repository/package/CLI IDs remain stable until a tested migration is approved"}
+  ],
+  "activation_authorized":false
+}
