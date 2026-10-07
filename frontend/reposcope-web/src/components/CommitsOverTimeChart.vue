@@ -6,7 +6,7 @@ import type { CommitsByDay } from '../types/metrics';
 Chart.register(...registerables);
 
 const props = defineProps<{
-  data: CommitsByDay[];
+  data: readonly CommitsByDay[];
 }>();
 
 const chartCanvas = ref<HTMLCanvasElement | null>(null);

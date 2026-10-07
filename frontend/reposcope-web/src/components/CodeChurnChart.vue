@@ -12,7 +12,7 @@ import type { CodeChurnByDay } from '../types/metrics'
 Chart.register(...registerables)
 
 const props = defineProps<{
-  data: CodeChurnByDay[]
+  data: readonly CodeChurnByDay[]
 }>()
 
 const chartCanvas = ref<HTMLCanvasElement | null>(null)
@@ -63,7 +63,7 @@ const createChart = () => {
               if (label) {
                 label += ': '
               }
-              const value = Math.abs(context.parsed.y)
+              const value = Math.abs(context.parsed.y ?? 0)
               label += value.toLocaleString() + ' lines'
               return label
             }

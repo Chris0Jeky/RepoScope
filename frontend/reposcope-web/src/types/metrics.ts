@@ -6,11 +6,11 @@ export interface RepoMetrics {
   earliestCommitDate: string | null;
   latestCommitDate: string | null;
   uniqueAuthors: number;
-  commitsOverTime: CommitsByDay[];
-  commitsByAuthor: CommitsByAuthor[];
-  commitsByDirectory: CommitsByDirectory[];
-  fileHotspots: FileHotspot[];
-  codeChurnOverTime: CodeChurnByDay[];
+  commitsOverTime: readonly CommitsByDay[];
+  commitsByAuthor: readonly CommitsByAuthor[];
+  commitsByDirectory: readonly CommitsByDirectory[];
+  fileHotspots: readonly FileHotspot[];
+  codeChurnOverTime: readonly CodeChurnByDay[];
 }
 
 export interface CommitsByDay {

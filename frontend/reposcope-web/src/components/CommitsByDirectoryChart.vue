@@ -6,7 +6,7 @@ import type { CommitsByDirectory } from '../types/metrics';
 Chart.register(...registerables);
 
 const props = defineProps<{
-  data: CommitsByDirectory[];
+  data: readonly CommitsByDirectory[];
 }>();
 
 const chartCanvas = ref<HTMLCanvasElement | null>(null);

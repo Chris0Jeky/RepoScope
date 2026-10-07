@@ -28,7 +28,7 @@ import { computed } from 'vue'
 import type { FileHotspot } from '../types/metrics'
 
 const props = defineProps<{
-  data: FileHotspot[]
+  data: readonly FileHotspot[]
 }>()
 
 const topFiles = computed(() => {
