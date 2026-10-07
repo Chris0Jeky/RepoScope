@@ -341,7 +341,7 @@ Contributions are welcome! This is a personal project but feedback and improveme
 ### Development Setup
 
 1. Install .NET 8 SDK
-2. Install Node.js 18+
+2. Install Node.js 24 LTS
 3. Clone the repository
 4. Build and run tests
 
