@@ -333,6 +333,7 @@ RepoScope is 100% local and offline:
 - No data is sent to any external service
 - All analysis happens on your machine
 - Generated reports are static files you control
+- Reports bundle their own copy of Chart.js (`assets/js/vendor`), load nothing from the network, and render repository-derived text (paths, branches, authors) as plain text only
 
 ## Contributing
 

@@ -57,12 +57,11 @@ function renderRepoInfo(metrics) {
         { label: 'Date Range', value: `${formatDate(metrics.earliestCommitDate)} - ${formatDate(metrics.latestCommitDate)}` }
     ];
 
-    infoGrid.innerHTML = info.map(item => `
-        <div class="info-row">
-            <span class="info-label">${item.label}:</span>
-            <span class="info-value">${item.value}</span>
-        </div>
-    `).join('');
+    infoGrid.replaceChildren(...info.map(item => {
+        const row = el('div', 'info-row');
+        row.append(el('span', 'info-label', `${item.label}:`), el('span', 'info-value', item.value));
+        return row;
+    }));
 }
 
 function renderStatsCards(metrics) {
@@ -75,12 +74,11 @@ function renderStatsCards(metrics) {
         { label: 'Active Days', value: metrics.commitsOverTime.length }
     ];
 
-    statsGrid.innerHTML = stats.map(stat => `
-        <div class="stat-card">
-            <div class="stat-value">${stat.value}</div>
-            <div class="stat-label">${stat.label}</div>
-        </div>
-    `).join('');
+    statsGrid.replaceChildren(...stats.map(stat => {
+        const card = el('div', 'stat-card');
+        card.append(el('div', 'stat-value', stat.value), el('div', 'stat-label', stat.label));
+        return card;
+    }));
 }
 
 function renderCommitsOverTime(data) {
@@ -211,32 +209,28 @@ function renderCommitsByDirectory(data) {
 function renderAuthorsTable(data, totalCommits) {
     const tbody = document.querySelector('#authors-table tbody');
 
-    tbody.innerHTML = data.map(author => {
+    tbody.replaceChildren(...data.map(author => {
         const percentage = ((author.commitCount / totalCommits) * 100).toFixed(1);
-        return `
-            <tr>
-                <td>${escapeHtml(author.authorName)}</td>
-                <td>${escapeHtml(author.authorEmail)}</td>
-                <td class="number">${author.commitCount}</td>
-                <td class="number percentage">${percentage}%</td>
-            </tr>
-        `;
-    }).join('');
+        return row([
+            [author.authorName],
+            [author.authorEmail],
+            [author.commitCount, 'number'],
+            [`${percentage}%`, 'number percentage']
+        ]);
+    }));
 }
 
 function renderDirectoriesTable(data, totalCommits) {
     const tbody = document.querySelector('#directories-table tbody');
 
-    tbody.innerHTML = data.map(dir => {
+    tbody.replaceChildren(...data.map(dir => {
         const percentage = ((dir.commitCount / totalCommits) * 100).toFixed(1);
-        return `
-            <tr>
-                <td>${escapeHtml(dir.directoryPath)}</td>
-                <td class="number">${dir.commitCount}</td>
-                <td class="number percentage">${percentage}%</td>
-            </tr>
-        `;
-    }).join('');
+        return row([
+            [dir.directoryPath],
+            [dir.commitCount, 'number'],
+            [`${percentage}%`, 'number percentage']
+        ]);
+    }));
 }
 
 function renderCodeChurnOverTime(data) {
@@ -318,21 +312,33 @@ function renderFileHotspotsTable(data) {
     // Show top 50 files
     const top50 = data.slice(0, 50);
 
-    tbody.innerHTML = top50.map(file => {
-        return `
-            <tr>
-                <td>${escapeHtml(file.filePath)}</td>
-                <td class="number">${file.commitCount}</td>
-                <td class="number" style="color: #10b981;">${file.linesAdded.toLocaleString()}</td>
-                <td class="number" style="color: #ef4444;">${file.linesDeleted.toLocaleString()}</td>
-                <td class="number" style="font-weight: 600;">${file.totalChurn.toLocaleString()}</td>
-            </tr>
-        `;
-    }).join('');
+    tbody.replaceChildren(...top50.map(file => {
+        return row([
+            [file.filePath],
+            [file.commitCount, 'number'],
+            [file.linesAdded.toLocaleString(), 'number', { color: '#10b981' }],
+            [file.linesDeleted.toLocaleString(), 'number', { color: '#ef4444' }],
+            [file.totalChurn.toLocaleString(), 'number', { fontWeight: '600' }]
+        ]);
+    }));
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+// Every value in metrics.json comes from the analysed repository (paths, branch, author names, ...) and is
+// attacker-controlled. Build DOM nodes and assign text only through textContent; never build markup from strings.
+function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = String(text);
+    return node;
+}
+
+// cells: [[text, className?, styleProps?], ...]
+function row(cells) {
+    const tr = document.createElement('tr');
+    for (const [text, className, style] of cells) {
+        const td = el('td', className, text);
+        if (style) Object.assign(td.style, style);
+        tr.appendChild(td);
+    }
+    return tr;
 }

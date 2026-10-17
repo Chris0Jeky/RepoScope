@@ -61,7 +61,7 @@ public static class ReportCommand
                     MaxCommits = maxCommits
                 };
 
-                Console.WriteLine($"Analyzing repository at {path}...");
+                Console.WriteLine($"Analyzing repository at {TerminalText.Escape(path)}...");
                 var metrics = analyzer.Analyze(path, options);
 
                 // Create output directory
@@ -70,20 +70,20 @@ public static class ReportCommand
                 // Write metrics.json
                 var metricsPath = Path.Combine(output, "metrics.json");
                 JsonFormatter.WriteToFile(metrics, metricsPath);
-                Console.WriteLine($"Metrics written to {metricsPath}");
+                Console.WriteLine($"Metrics written to {TerminalText.Escape(metricsPath)}");
 
                 // Copy or generate index.html
                 var htmlPath = Path.Combine(output, "index.html");
                 await GenerateHtmlReport(htmlPath);
-                Console.WriteLine($"HTML report written to {htmlPath}");
+                Console.WriteLine($"HTML report written to {TerminalText.Escape(htmlPath)}");
 
                 Console.WriteLine();
                 Console.WriteLine($"Report generated successfully!");
-                Console.WriteLine($"Open {htmlPath} in your browser to view the report.");
+                Console.WriteLine($"Open {TerminalText.Escape(htmlPath)} in your browser to view the report.");
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error: {ex.Message}");
+                Console.Error.WriteLine($"Error: {TerminalText.Escape(ex.Message)}");
                 Environment.Exit(1);
             }
         }, pathArg, branchOpt, sinceOpt, untilOpt, maxCommitsOpt, outputOpt);
@@ -170,166 +170,96 @@ public static class ReportCommand
         await Task.CompletedTask;
     }
 
-    private static string GetEmbeddedHtmlTemplate()
+    /// <summary>
+    /// Fallback used when the template directory cannot be found. It is deliberately a no-chart,
+    /// no-network page: tables only, every repository-derived value is set with textContent, and a
+    /// CSP blocks anything that is not the page itself. (Vendoring the 200 KB chart bundle into a
+    /// string would cost far more than the tables do.)
+    /// </summary>
+    public static string GetEmbeddedHtmlTemplate()
     {
-        // Fallback embedded template for cases where template files can't be found
-        return @"<!DOCTYPE html>
-<html lang=""en"">
+        return """
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset=""UTF-8"">
-    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'">
     <title>RepoScope Report</title>
-    <script src=""https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js""></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; background: #f5f5f5; }
         .container { max-width: 1200px; margin: 0 auto; }
         h1 { color: #333; margin-bottom: 10px; }
-        .header { background: white; padding: 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        h2 { margin-bottom: 10px; }
+        .header, .section { background: white; padding: 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .meta { color: #666; font-size: 14px; }
+        .meta div { overflow-wrap: anywhere; }
         .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .card-value { font-size: 32px; font-weight: bold; color: #2563eb; margin-bottom: 5px; }
         .card-label { color: #666; font-size: 14px; }
-        .chart-container { background: white; padding: 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        canvas { max-height: 400px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #eee; overflow-wrap: anywhere; }
     </style>
 </head>
 <body>
-    <div class=""container"">
-        <div class=""header"">
+    <div class="container">
+        <div class="header">
             <h1>RepoScope Analysis Report</h1>
-            <div class=""meta"" id=""repo-meta"">Loading...</div>
+            <div class="meta" id="repo-meta">Loading...</div>
         </div>
-
-        <div class=""cards"" id=""stats-cards""></div>
-
-        <div class=""chart-container"">
-            <h2>Commits Over Time</h2>
-            <canvas id=""commits-over-time""></canvas>
-        </div>
-
-        <div class=""chart-container"">
-            <h2>Top Contributors</h2>
-            <canvas id=""commits-by-author""></canvas>
-        </div>
-
-        <div class=""chart-container"">
-            <h2>Activity by Directory</h2>
-            <canvas id=""commits-by-directory""></canvas>
-        </div>
+        <div class="cards" id="stats-cards"></div>
+        <div class="section"><h2>Commits Over Time</h2><div id="commits-over-time"></div></div>
+        <div class="section"><h2>Top Contributors</h2><div id="commits-by-author"></div></div>
+        <div class="section"><h2>Activity by Directory</h2><div id="commits-by-directory"></div></div>
     </div>
 
     <script>
-        // Load metrics
+        // Every value from metrics.json (repository path, branch, author, file names) is repository-controlled:
+        // only ever assign it through textContent.
+        function add(parent, tag, text, cls) {
+            const e = document.createElement(tag);
+            if (text !== undefined) e.textContent = String(text);
+            if (cls) e.className = cls;
+            parent.appendChild(e);
+            return e;
+        }
+
+        function table(id, heads, rows) {
+            const host = document.getElementById(id);
+            const t = add(host, 'table');
+            const tr = add(add(t, 'thead'), 'tr');
+            heads.forEach(h => add(tr, 'th', h));
+            const body = add(t, 'tbody');
+            rows.forEach(r => { const row = add(body, 'tr'); r.forEach(c => add(row, 'td', c)); });
+        }
+
+        function renderReport(m) {
+            const meta = document.getElementById('repo-meta');
+            meta.replaceChildren();
+            [['Repository', m.repoPath], ['Branch', m.branch || 'N/A'], ['Head', String(m.headCommitId).substring(0, 8)]]
+                .forEach(([k, v]) => { const d = add(meta, 'div'); add(d, 'strong', k + ': '); d.appendChild(document.createTextNode(String(v))); });
+
+            const cards = document.getElementById('stats-cards');
+            [['Total Commits', m.totalCommits], ['Contributors', m.uniqueAuthors], ['Directories', m.commitsByDirectory.length]]
+                .forEach(([label, value]) => { const c = add(cards, 'div', undefined, 'card'); add(c, 'div', value, 'card-value'); add(c, 'div', label, 'card-label'); });
+
+            table('commits-over-time', ['Day', 'Commits'], m.commitsOverTime.map(d => [d.day, d.commitCount]));
+            table('commits-by-author', ['Author', 'Email', 'Commits'], m.commitsByAuthor.slice(0, 10).map(d => [d.authorName, d.authorEmail, d.commitCount]));
+            table('commits-by-directory', ['Directory', 'Commits'], m.commitsByDirectory.slice(0, 10).map(d => [d.directoryPath, d.commitCount]));
+        }
+
         fetch('metrics.json')
-            .then(res => res.json())
-            .then(data => {
-                renderReport(data);
-            })
+            .then(res => { if (!res.ok) throw new Error(res.statusText); return res.json(); })
+            .then(renderReport)
             .catch(err => {
                 console.error('Failed to load metrics:', err);
-                document.querySelector('.container').innerHTML = '<p>Failed to load metrics.json</p>';
+                document.getElementById('repo-meta').textContent = 'Failed to load metrics.json';
             });
-
-        function renderReport(metrics) {
-            // Header
-            document.getElementById('repo-meta').innerHTML = `
-                <strong>Repository:</strong> ${metrics.repoPath}<br>
-                <strong>Branch:</strong> ${metrics.branch || 'N/A'}<br>
-                <strong>Head:</strong> ${metrics.headCommitId.substring(0, 8)}
-            `;
-
-            // Stats cards
-            const cardsHtml = `
-                <div class=""card"">
-                    <div class=""card-value"">${metrics.totalCommits}</div>
-                    <div class=""card-label"">Total Commits</div>
-                </div>
-                <div class=""card"">
-                    <div class=""card-value"">${metrics.uniqueAuthors}</div>
-                    <div class=""card-label"">Contributors</div>
-                </div>
-                <div class=""card"">
-                    <div class=""card-value"">${metrics.commitsByDirectory.length}</div>
-                    <div class=""card-label"">Directories</div>
-                </div>
-            `;
-            document.getElementById('stats-cards').innerHTML = cardsHtml;
-
-            // Charts
-            renderCommitsOverTime(metrics.commitsOverTime);
-            renderCommitsByAuthor(metrics.commitsByAuthor);
-            renderCommitsByDirectory(metrics.commitsByDirectory);
-        }
-
-        function renderCommitsOverTime(data) {
-            const ctx = document.getElementById('commits-over-time');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(d => d.day),
-                    datasets: [{
-                        label: 'Commits',
-                        data: data.map(d => d.commitCount),
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                        tension: 0.1,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        function renderCommitsByAuthor(data) {
-            const top10 = data.slice(0, 10);
-            const ctx = document.getElementById('commits-by-author');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: top10.map(d => d.authorName),
-                    datasets: [{
-                        label: 'Commits',
-                        data: top10.map(d => d.commitCount),
-                        backgroundColor: '#2563eb'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    indexAxis: 'y',
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        function renderCommitsByDirectory(data) {
-            const top10 = data.slice(0, 10);
-            const ctx = document.getElementById('commits-by-directory');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: top10.map(d => d.directoryPath),
-                    datasets: [{
-                        label: 'Commits',
-                        data: top10.map(d => d.commitCount),
-                        backgroundColor: '#10b981'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
     </script>
 </body>
-</html>";
+</html>
+""";
     }
 }
