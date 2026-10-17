@@ -60,7 +60,7 @@ public static class AnalyzeCommand
                     MaxCommits = maxCommits
                 };
 
-                Console.Error.WriteLine($"Analyzing repository at {path}...");
+                Console.Error.WriteLine($"Analyzing repository at {TerminalText.Escape(path)}...");
                 var metrics = analyzer.Analyze(path, options);
 
                 var json = JsonFormatter.Format(metrics);
@@ -68,7 +68,7 @@ public static class AnalyzeCommand
                 if (output != null)
                 {
                     await File.WriteAllTextAsync(output, json);
-                    Console.Error.WriteLine($"Metrics written to {output}");
+                    Console.Error.WriteLine($"Metrics written to {TerminalText.Escape(output)}");
                 }
                 else
                 {
@@ -77,7 +77,7 @@ public static class AnalyzeCommand
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error: {ex.Message}");
+                Console.Error.WriteLine($"Error: {TerminalText.Escape(ex.Message)}");
                 Environment.Exit(1);
             }
         }, pathArg, branchOpt, sinceOpt, untilOpt, maxCommitsOpt, outputOpt);

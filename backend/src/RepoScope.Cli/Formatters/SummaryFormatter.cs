@@ -14,9 +14,9 @@ public static class SummaryFormatter
 
         sb.AppendLine("=== RepoScope Analysis ===");
         sb.AppendLine();
-        sb.AppendLine($"Repository: {metrics.RepoPath}");
-        sb.AppendLine($"Branch: {metrics.Branch ?? "N/A"}");
-        sb.AppendLine($"Head Commit: {metrics.HeadCommitId[..Math.Min(8, metrics.HeadCommitId.Length)]}");
+        sb.AppendLine($"Repository: {TerminalText.Escape(metrics.RepoPath)}");
+        sb.AppendLine($"Branch: {TerminalText.Escape(metrics.Branch ?? "N/A")}");
+        sb.AppendLine($"Head Commit: {TerminalText.Escape(metrics.HeadCommitId[..Math.Min(8, metrics.HeadCommitId.Length)])}");
         sb.AppendLine();
 
         sb.AppendLine("--- Overview ---");
@@ -38,7 +38,7 @@ public static class SummaryFormatter
             foreach (var author in topAuthors)
             {
                 var percentage = (double)author.CommitCount / metrics.TotalCommits * 100;
-                sb.AppendLine($"  {author.AuthorName} ({author.AuthorEmail}): {author.CommitCount} commits ({percentage:F1}%)");
+                sb.AppendLine($"  {TerminalText.Escape(author.AuthorName)} ({TerminalText.Escape(author.AuthorEmail)}): {author.CommitCount} commits ({percentage:F1}%)");
             }
             sb.AppendLine();
         }
@@ -50,7 +50,7 @@ public static class SummaryFormatter
             var topDirs = metrics.CommitsByDirectory.Take(10);
             foreach (var dir in topDirs)
             {
-                sb.AppendLine($"  {dir.DirectoryPath}: {dir.CommitCount} commits");
+                sb.AppendLine($"  {TerminalText.Escape(dir.DirectoryPath)}: {dir.CommitCount} commits");
             }
             sb.AppendLine();
         }

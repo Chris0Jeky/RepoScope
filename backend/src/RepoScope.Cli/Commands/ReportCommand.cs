@@ -61,7 +61,7 @@ public static class ReportCommand
                     MaxCommits = maxCommits
                 };
 
-                Console.WriteLine($"Analyzing repository at {path}...");
+                Console.WriteLine($"Analyzing repository at {TerminalText.Escape(path)}...");
                 var metrics = analyzer.Analyze(path, options);
 
                 // Create output directory
@@ -70,20 +70,20 @@ public static class ReportCommand
                 // Write metrics.json
                 var metricsPath = Path.Combine(output, "metrics.json");
                 JsonFormatter.WriteToFile(metrics, metricsPath);
-                Console.WriteLine($"Metrics written to {metricsPath}");
+                Console.WriteLine($"Metrics written to {TerminalText.Escape(metricsPath)}");
 
                 // Copy or generate index.html
                 var htmlPath = Path.Combine(output, "index.html");
                 await GenerateHtmlReport(htmlPath);
-                Console.WriteLine($"HTML report written to {htmlPath}");
+                Console.WriteLine($"HTML report written to {TerminalText.Escape(htmlPath)}");
 
                 Console.WriteLine();
                 Console.WriteLine($"Report generated successfully!");
-                Console.WriteLine($"Open {htmlPath} in your browser to view the report.");
+                Console.WriteLine($"Open {TerminalText.Escape(htmlPath)} in your browser to view the report.");
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error: {ex.Message}");
+                Console.Error.WriteLine($"Error: {TerminalText.Escape(ex.Message)}");
                 Environment.Exit(1);
             }
         }, pathArg, branchOpt, sinceOpt, untilOpt, maxCommitsOpt, outputOpt);

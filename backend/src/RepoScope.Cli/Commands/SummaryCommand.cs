@@ -62,7 +62,7 @@ public static class SummaryCommand
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error: {ex.Message}");
+                Console.Error.WriteLine($"Error: {TerminalText.Escape(ex.Message)}");
                 Environment.Exit(1);
             }
         }, pathArg, branchOpt, sinceOpt, untilOpt, maxCommitsOpt);
