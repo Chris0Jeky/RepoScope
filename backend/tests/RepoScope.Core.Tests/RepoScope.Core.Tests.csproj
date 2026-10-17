@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\RepoScope.Core\RepoScope.Core.csproj" />
+    <ProjectReference Include="..\..\src\RepoScope.Cli\RepoScope.Cli.csproj" />
   </ItemGroup>
 
 </Project>
